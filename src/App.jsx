@@ -1113,26 +1113,48 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // const loadProfile = async (userId) => {
+  //   const { data } = await supabase.from('profiles').select('*').eq('id',userId).maybeSingle();
+  //   setProfile(data);
+  // };
+
+  // useEffect(()=>{
+  //   supabase.auth.getSession().then(async ({data:{session}})=>{
+  //     setSession(session);
+  //     if (session) await loadProfile(session.user.id);
+  //     setLoading(false);
+  //   });
+
+  //   const { data:{subscription} } = supabase.auth.onAuthStateChange(async (_event,session)=>{
+  //     setSession(session);
+  //     if (session) await loadProfile(session.user.id);
+  //     else setProfile(null);
+  //   });
+
+  //   return ()=>subscription.unsubscribe();
+  // },[]);
+
+
   const loadProfile = async (userId) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id',userId).maybeSingle();
-    setProfile(data);
+    try {
+      const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      setProfile(data);
+    } catch(e) {
+      console.error('Profile load error:', e);
+    }
   };
 
-  useEffect(()=>{
-    supabase.auth.getSession().then(async ({data:{session}})=>{
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      if (session) await loadProfile(session.user.id);
-      setLoading(false);
+      try {
+        if (session) await loadProfile(session.user.id);
+      } catch(e) {
+        console.error('Session error:', e);
+      } finally {
+        setLoading(false); // always runs, no more infinite loading
+      }
     });
-
-    const { data:{subscription} } = supabase.auth.onAuthStateChange(async (_event,session)=>{
-      setSession(session);
-      if (session) await loadProfile(session.user.id);
-      else setProfile(null);
-    });
-
-    return ()=>subscription.unsubscribe();
-  },[]);
 
   if (loading) return (
     <div style={{height:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
