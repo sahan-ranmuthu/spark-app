@@ -1156,6 +1156,15 @@ export default function App() {
       }
     });
 
+    const { data:{subscription} } = supabase.auth.onAuthStateChange(async (_event,session)=>{
+      setSession(session);
+      if (session) await loadProfile(session.user.id);
+      else setProfile(null);
+    });
+
+    return ()=>subscription.unsubscribe();
+  },[]);
+
   if (loading) return (
     <div style={{height:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
